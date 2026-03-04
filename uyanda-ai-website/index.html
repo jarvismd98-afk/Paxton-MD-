@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>🌸 Uyanda AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', 'Comic Neue', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #fce4f0 0%, #fdd0e4 50%, #fcb8d9 100%);
+            position: relative;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        /* Floating hearts & sparkles */
+        .float-item {
+            position: fixed;
+            font-size: 2rem;
+            color: rgba(255, 150, 200, 0.5);
+            animation: float 7s ease-in-out infinite;
+            user-select: none;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
+        }
+
+        .sparkle {
+            position: fixed;
+            color: #fff9d7;
+            font-size: 1.2rem;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: rgba(255, 245, 250, 0.7);
+            backdrop-filter: blur(20px);
+            border-radius: 50px;
+            padding: 2rem 1.8rem;
+            box-shadow: 0 25px 50px rgba(255, 105, 180, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            position: relative;
+            z-index: 10;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 3.5rem;
+            background: linear-gradient(135deg, #ff85a2, #ffb3c6, #ffd1d1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.3rem;
+            text-shadow: 2px 2px 10px rgba(255,200,220,0.5);
+        }
+
+        .phone {
+            text-align: center;
+            background: #ffb8d2;
+            color: #4e2d3d;
+            padding: 0.5rem 1.8rem;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: inline-block;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 4px 15px #ffa5c3;
+            border: 2px solid white;
+        }
+
+        .chat-box {
+            background: rgba(255, 230, 240, 0.6);
+            border-radius: 30px;
+            padding: 1.5rem;
+            height: 350px;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 0.9rem 1.4rem;
+            border-radius: 25px;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease;
+            font-size: 1rem;
+            line-height: 1.4;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: #ffc1d4;
+            color: #3e2a32;
+            border-bottom-right-radius: 8px;
+            border: 1px solid #ffa5b9;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background: #fff0f7;
+            color: #4e2d3d;
+            border-bottom-left-radius: 8px;
+            border: 1px solid #ffc1d4;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .typing-indicator {
+            align-self: flex-start;
+            background: #fad5e5;
+            color: #5e3a4a;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            border-bottom-left-radius: 8px;
+            display: none;
+            font-size: 1rem;
+            align-items: center;
+            gap: 5px;
+            width: fit-content;
+        }
+
+        .typing-indicator span {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background: #b35f7b;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 1.2rem 1.5rem;
+            border: none;
+            border-radius: 60px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+            outline: none;
+            border: 1px solid #ffc1d4;
+        }
+
+        button {
+            padding: 0 2.2rem;
+            border: none;
+            border-radius: 60px;
+            background: #ffa7c5;
+            color: white;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px #ff80aa;
+            border: 1px solid white;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px #ff99bb;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #a05070;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="floating-container"></div>
+
+    <div class="container">
+        <h1>🌸 Uyanda AI</h1>
+        <div style="text-align: center;">
+            <span class="phone">📞 +27 81 646 4852</span>
+        </div>
+
+        <div class="chat-box" id="chatBox">
+            <div class="message bot-message">Hiiii gorgeous! I'm Uyanda, your sweet AI bestie. Ask me anything! 💕</div>
+        </div>
+
+        <div class="typing-indicator" id="typingIndicator">
+            <span></span><span></span><span></span> Uyanda is typing...
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Say something cute..." autofocus>
+            <button id="sendBtn">Send</button>
+        </div>
+
+        <footer>Made with 💖 for Uyanda</footer>
+    </div>
+
+    <script>
+        // ========== FLOATING HEARTS & SPARKLES ==========
+        function createFloating() {
+            const container = document.getElementById('floating-container');
+            const isHeart = Math.random() > 0.3;
+            const el = document.createElement('div');
+            el.className = isHeart ? 'float-item' : 'sparkle';
+            el.innerHTML = isHeart 
+                ? ['❤️','🧡','💛','💚','💙','💜','🩷','💖','🌸','🌺'][Math.floor(Math.random()*10)]
+                : '✨';
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.animationDuration = (Math.random() * 6 + 5) + 's';
+            el.style.fontSize = (Math.random() * 2 + 1.5) + 'rem';
+            container.appendChild(el);
+            setTimeout(() => el.remove(), 10000);
+        }
+        setInterval(createFloating, 400);
+
+        // ========== CHAT ==========
+        const chatBox = document.getElementById('chatBox');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const typingIndicator = document.getElementById('typingIndicator');
+
+        function addMessage(text, sender) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${sender}-message`;
+            msgDiv.textContent = text;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, 'user');
+            userInput.value = '';
+            typingIndicator.style.display = 'flex';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+                const data = await response.json();
+                typingIndicator.style.display = 'none';
+                if (data.reply) {
+                    addMessage(data.reply, 'bot');
+                } else {
+                    addMessage('❌ ' + (data.error || 'Uyanda is thinking... try again'), 'bot');
+                }
+            } catch (error) {
+                typingIndicator.style.display = 'none';
+                addMessage('❌ Connection hiccup! Uyanda still loves you 💕', 'bot');
+                console.error(error);
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+</html>
