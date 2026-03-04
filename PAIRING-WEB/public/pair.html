@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAXTON-MD | Pairing Code</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="orb"></div>
+    <div class="orb orb-2"></div>
+    
+    <div class="container">
+        <div class="logo">
+            <div class="logo-icon">🔐</div>
+        </div>
+        <h1 class="gradient-text">Pairing Code</h1>
+        <div class="subtitle">Generate your 8-digit code</div>
+        
+        <div class="method-selector">
+            <a href="/pair" class="method-btn active">
+                <i class="fas fa-key"></i> Pairing Code
+            </a>
+            <a href="/qr" class="method-btn">
+                <i class="fas fa-qrcode"></i> QR Code
+            </a>
+        </div>
+        
+        <div class="input-group">
+            <label><i class="fas fa-phone"></i> Phone Number</label>
+            <input type="text" id="phoneNumber" placeholder="e.g., 27836547695" value="27687813781">
+            <div class="info-text"><i class="fas fa-info-circle"></i> Include country code, no + or spaces</div>
+        </div>
+        
+        <button class="btn" id="startBtn" onclick="startPairing()">
+            <i class="fas fa-magic"></i> Generate Pairing Code
+        </button>
+        
+        <div class="status-box" id="statusBox">
+            <div class="loader" id="loader"></div>
+            
+            <div class="progress-steps">
+                <div class="step" id="step1">
+                    <div class="step-number">1</div>
+                    <div>Initializing connection <span class="loading-dots" id="dots1"><span></span><span></span><span></span></span></div>
+                </div>
+                <div class="step" id="step2">
+                    <div class="step-number">2</div>
+                    <div>Generating pairing code <span class="loading-dots" id="dots2" style="display: none;"><span></span><span></span><span></span></span></div>
+                </div>
+                <div class="step" id="step3">
+                    <div class="step-number">3</div>
+                    <div>Waiting for connection <span class="loading-dots" id="dots3" style="display: none;"><span></span><span></span><span></span></span></div>
+                </div>
+            </div>
+            
+            <div class="code-box" id="codeBox" style="display: none;">
+                <div class="code" id="codeDisplay"></div>
+                <div class="code-label">Enter this code in WhatsApp</div>
+            </div>
+            
+            <div class="owner-badge" id="ownerBadge" style="display: none;">👑 OWNER</div>
+            
+            <div class="success-message" id="successMessage" style="display: none;">
+                <i class="fas fa-check-circle"></i> Connected Successfully! Generating session...
+            </div>
+        </div>
+        
+        <a href="/" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back to Home
+        </a>
+        
+        <div class="footer">
+            <p><i class="fas fa-clock"></i> Session expires in 10 minutes</p>
+        </div>
+    </div>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        let socket;
+        let currentSessionId = null;
+        
+        async function startPairing() {
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            
+            if (!phoneNumber) {
+                alert('Please enter phone number');
+                return;
+            }
+            
+            const cleanNumber = phoneNumber.replace(/\D/g, '');
+            if (cleanNumber.length < 10) {
+                alert('Invalid phone number. Include country code.');
+                return;
+            }
+            
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('statusBox').classList.add('active');
+            document.getElementById('codeBox').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('ownerBadge').style.display = 'none';
+            document.getElementById('loader').style.display = 'block';
+            
+            document.getElementById('step1').classList.remove('completed');
+            document.getElementById('step2').classList.remove('completed');
+            document.getElementById('step3').classList.remove('completed');
+            document.getElementById('dots1').style.display = 'inline-flex';
+            document.getElementById('dots2').style.display = 'none';
+            document.getElementById('dots3').style.display = 'none';
+            
+            try {
+                // Check if owner first
+                const ownerCheck = await fetch('/api/check-owner', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phoneNumber: cleanNumber })
+                });
+                const ownerData = await ownerCheck.json();
+                
+                if (ownerData.isOwner) {
+                    document.getElementById('ownerBadge').style.display = 'inline-block';
+                }
+                
+                const response = await fetch('/api/pair', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        phoneNumber: cleanNumber,
+                        method: 'pairing'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    alert('Error: ' + data.error);
+                    return;
+                }
+                
+                currentSessionId = data.sessionId;
+                
+                socket = io();
+                socket.emit('register', { sessionId: currentSessionId });
+                
+                socket.on('code', (data) => {
+                    document.getElementById('step1').classList.add('completed');
+                    document.getElementById('dots1').style.display = 'none';
+                    
+                    document.getElementById('step2').classList.add('completed');
+                    document.getElementById('codeDisplay').innerText = data.code;
+                    document.getElementById('codeBox').style.display = 'block';
+                    document.getElementById('loader').style.display = 'none';
+                    
+                    document.getElementById('dots3').style.display = 'inline-flex';
+                });
+                
+                socket.on('connected', () => {
+                    document.getElementById('step2').classList.add('completed');
+                    document.getElementById('step3').classList.add('completed');
+                    document.getElementById('dots3').style.display = 'none';
+                    document.getElementById('loader').style.display = 'none';
+                    document.getElementById('successMessage').style.display = 'block';
+                    document.getElementById('codeBox').style.display = 'none';
+                    
+                    setTimeout(() => {
+                        window.location.href = `/success?session=${currentSessionId}&phone=${cleanNumber}`;
+                    }, 3000);
+                });
+                
+                socket.on('error', (data) => {
+                    alert('Error: ' + data.message);
+                    document.getElementById('startBtn').disabled = false;
+                });
+                
+            } catch (error) {
+                alert('Error: ' + error.message);
+                document.getElementById('startBtn').disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
