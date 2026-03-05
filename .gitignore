@@ -1,0 +1,14 @@
+# Session files
+sessions/
+*.json
+!package.json
+!database.json
+
+# Node modules
+node_modules/
+
+# Environment
+.env
+
+# Temp files
+temp/
